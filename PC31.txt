@@ -1,0 +1,102 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+// Provider class to hold form data
+class FormDataProvider with ChangeNotifier {
+  String field1 = '';
+  String field2 = '';
+
+  void setData(String f1, String f2) {
+    field1 = f1;
+    field2 = f2;
+    notifyListeners();
+  }
+}
+
+void main() {
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => FormDataProvider(),
+      child: MaterialApp(home: FormWithProviderExample()),
+    ),
+  );
+}
+
+class FormWithProviderExample extends StatefulWidget {
+  @override
+  _FormWithProviderExampleState createState() =>
+      _FormWithProviderExampleState();
+}
+
+class _FormWithProviderExampleState extends State<FormWithProviderExample> {
+  final _formKey = GlobalKey<FormState>();
+  String field1Input = '';
+  String field2Input = '';
+
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      Provider.of<FormDataProvider>(context, listen: false)
+          .setData(field1Input, field2Input);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Form data submitted")),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Form with Provider")),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          children: [
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    decoration: InputDecoration(labelText: 'Field 1'),
+                    validator: (value) =>
+                        value!.isEmpty ? 'Please enter value for Field 1' : null,
+                    onSaved: (value) => field1Input = value!,
+                  ),
+                  SizedBox(height: 15),
+                  TextFormField(
+                    decoration: InputDecoration(labelText: 'Field 2'),
+                    validator: (value) =>
+                        value!.isEmpty ? 'Please enter value for Field 2' : null,
+                    onSaved: (value) => field2Input = value!,
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: _submitForm,
+                    child: Text("Submit"),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 30),
+            DisplayFormData(), // Another widget displaying the form data
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Widget to display form data from Provider
+class DisplayFormData extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final formData = Provider.of<FormDataProvider>(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text("Field 1: ${formData.field1}", style: TextStyle(fontSize: 18)),
+        Text("Field 2: ${formData.field2}", style: TextStyle(fontSize: 18)),
+      ],
+    );
+  }
+}
